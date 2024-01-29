@@ -23,7 +23,8 @@ jobs:
       - name: Build docs and manually add an index.html file
         run: |
           cargo doc --all --no-deps
-          echo '<meta http-equiv="refresh" content="0; url=rmathlib">' > target/doc/index.html
+          # This is a manual fix that we need to do when we're not deploying to crates.io.
+          echo '<meta http-equiv="refresh" content="0; url=mwe">' > target/doc/index.html
 
       - uses: actions/upload-pages-artifact@v3
         if: ${{ github.event_name != 'pull_request' }}
