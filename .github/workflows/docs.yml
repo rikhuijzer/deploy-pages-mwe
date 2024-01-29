@@ -1,0 +1,48 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Stable Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: 'stable'
+
+      - name: Build docs and manually add an index.html file
+        run: |
+          cargo doc --all --no-deps
+          echo '<meta http-equiv="refresh" content="0; url=rmathlib">' > target/doc/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          path: './target/doc'
+          retention-days: '1'
+
+  deploy:
+    # Separate step to keep the permissions separated.
+    needs: build
+    if: ${{ github.event_name != 'pull_request' }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
